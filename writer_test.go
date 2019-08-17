@@ -16,7 +16,15 @@ func TestWriter(t *testing.T) {
 	}
 
 	ws := &writerseeker.WriterSeeker{}
-	wavw, err := wave.NewWriter(ws)
+	fmt := &wave.Format{
+		AudioFormat:   0x1,
+		NumChans:      0x2,
+		SampleRate:    0xac44,
+		ByteRate:      0x2b110,
+		BlockAlign:    0x4,
+		BitsPerSample: 0x10,
+	}
+	wavw, err := wave.NewWriter(ws, fmt)
 	if err != nil {
 		t.Fatalf("could not create wave writer: %v", err)
 	}

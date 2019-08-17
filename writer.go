@@ -14,7 +14,7 @@ type Writer struct {
 }
 
 // NewWriter creates a new WAVE Writer.
-func NewWriter(ws io.WriteSeeker) (*Writer, error) {
+func NewWriter(ws io.WriteSeeker, fmt *Format) (*Writer, error) {
 	rw, err := riff.NewWriter(ws, "WAVE")
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create new riff reader")
@@ -23,7 +23,6 @@ func NewWriter(ws io.WriteSeeker) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create format chunk")
 	}
-	fmt := &Format{AudioFormat: 255, BitsPerSample: 16}
 	if err := fmt.Encode(cw); err != nil {
 		return nil, errors.Wrap(err, "could not encode format chunk")
 	}

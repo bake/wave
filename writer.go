@@ -23,7 +23,7 @@ func NewWriter(ws io.WriteSeeker, fmt *Format) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create format chunk")
 	}
-	if err := fmt.Encode(cw); err != nil {
+	if err := fmt.encode(cw); err != nil {
 		return nil, errors.Wrap(err, "could not encode format chunk")
 	}
 	if err := cw.Close(); err != nil {

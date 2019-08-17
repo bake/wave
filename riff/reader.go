@@ -20,25 +20,25 @@ type Reader struct {
 	}
 }
 
-// NewReader reads the initial RIFF header and returns its type and a new chunk
+// NewReader reads the initial RIFF header and returns its type and a chunk
 // reader.
-func NewReader(r io.Reader) (string, *Reader, error) {
-	rr := &Reader{r: r}
+func NewReader(r io.Reader) (rr *Reader, riffType string, err error) {
+	rr = &Reader{r: r}
 	if !rr.Next() {
 		if rr.Error() == nil {
-			return "", nil, errors.Wrap(io.EOF, "wat")
+			return nil, "", errors.Wrap(io.EOF, "wat")
 		}
-		return "", nil, errors.Wrap(rr.Error(), "could not read RIFF chunk")
+		return nil, "", errors.Wrap(rr.Error(), "could not read RIFF chunk")
 	}
 	id, _, data := rr.Chunk()
 	if id != riffID {
-		return "", nil, errors.Errorf("unexpected chunk id %s", id)
+		return nil, "", errors.Errorf("unexpected chunk id %s", id)
 	}
 	t := make([]byte, 4)
 	if _, err := data.Read(t); err != nil {
-		return "", nil, errors.Wrap(err, "could not read RIFF type")
+		return nil, "", errors.Wrap(err, "could not read RIFF type")
 	}
-	return string(t), rr, nil
+	return rr, string(t), nil
 }
 
 // Next returns true until the underlying reader returns an error like EOF. The

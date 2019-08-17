@@ -15,7 +15,7 @@ type Reader struct {
 
 // NewReader reads the initial chunks from a WAVE file and returns a new reader.
 func NewReader(r io.Reader) (*Reader, error) {
-	t, rr, err := riff.NewReader(r)
+	rr, t, err := riff.NewReader(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create new riff reader")
 	}

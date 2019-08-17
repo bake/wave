@@ -44,7 +44,7 @@ func exampleInt16WaveReader() io.ReadSeeker {
 
 func TestReader(t *testing.T) {
 	r := exampleInt16WaveReader()
-	riffType, rr, err := riff.NewReader(r)
+	rr, riffType, err := riff.NewReader(r)
 	if err != nil {
 		t.Fatalf("could not create riff reader: %v", err)
 	}
@@ -76,11 +76,11 @@ func TestReader(t *testing.T) {
 
 func ExampleReader() {
 	r := exampleInt16WaveReader()
-	t, rr, err := riff.NewReader(r)
+	rr, riffType, err := riff.NewReader(r)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("type: %s\n", t)
+	fmt.Printf("type: %s\n", riffType)
 	for rr.Next() {
 		id, size, data := rr.Chunk()
 		body := make([]byte, size)

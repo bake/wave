@@ -9,8 +9,8 @@ import (
 
 // Reader reads samples from a WAVE file.
 type Reader struct {
-	rr  *riff.Reader
-	fmt *Format
+	rr     *riff.Reader
+	Format *Format
 }
 
 // NewReader reads the initial chunks from a WAVE file and returns a new reader.
@@ -75,11 +75,11 @@ func (wavr *Reader) Samples() ([]int, error) {
 }
 
 func (wavr *Reader) sample(r io.Reader) (int, error) {
-	s := make([]byte, wavr.fmt.BitsPerSample/8)
+	s := make([]byte, wavr.Format.BitsPerSample/8)
 	if _, err := r.Read(s); err != nil {
 		return 0, err
 	}
-	switch wavr.fmt.BitsPerSample {
+	switch wavr.Format.BitsPerSample {
 	case 8:
 		return int(uint8(s[0])), nil
 	case 16:
@@ -89,6 +89,6 @@ func (wavr *Reader) sample(r io.Reader) (int, error) {
 	case 32:
 		return int(int32(s[0]) | int32(s[1])<<8 | int32(s[2])<<16 | int32(s[3])<<24), nil
 	default:
-		return 0, errors.Errorf("unpexpected bps: %d", wavr.fmt.BitsPerSample)
+		return 0, errors.Errorf("unpexpected bps: %d", wavr.Format.BitsPerSample)
 	}
 }

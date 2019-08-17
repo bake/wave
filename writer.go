@@ -10,7 +10,7 @@ import (
 // Writer writes samples to an io.WriteCloser.
 type Writer struct {
 	io.WriteCloser
-	fmt *Format
+	fmt Format
 }
 
 // NewWriter creates a new WAVE Writer.
@@ -33,7 +33,7 @@ func NewWriter(ws io.WriteSeeker, fmt *Format) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create data chunk")
 	}
-	return &Writer{cw, fmt}, nil
+	return &Writer{cw, *fmt}, nil
 }
 
 // Sample writes a sample.

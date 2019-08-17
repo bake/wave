@@ -19,12 +19,12 @@ type Format struct {
 }
 
 // decodeFormat decodes a chunk in a format chunk.
-func decodeFormat(r io.Reader) (*Format, error) {
+func decodeFormat(r io.Reader) (Format, error) {
 	data, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not read format chunk")
+		return Format{}, errors.Wrap(err, "could not read format chunk")
 	}
-	return &Format{
+	return Format{
 		AudioFormat:   binary.LittleEndian.Uint16(data[:2]),
 		NumChans:      binary.LittleEndian.Uint16(data[2:4]),
 		SampleRate:    binary.LittleEndian.Uint32(data[4:8]),
@@ -34,8 +34,8 @@ func decodeFormat(r io.Reader) (*Format, error) {
 	}, nil
 }
 
-// Encode encodes a format struct into an io.Writer.
-func (f *Format) Encode(w io.Writer) error {
+// encode a format struct into an io.Writer.
+func (f *Format) encode(w io.Writer) error {
 	var err error
 	write := func(data interface{}) {
 		if err != nil {

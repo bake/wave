@@ -10,7 +10,7 @@ import (
 // Reader reads samples from a WAVE file.
 type Reader struct {
 	rr     *riff.Reader
-	Format *Format
+	Format Format
 }
 
 // NewReader reads the initial chunks from a WAVE file and returns a new reader.

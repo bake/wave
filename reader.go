@@ -1,7 +1,6 @@
 package wave
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/bake/wave/riff"
@@ -34,7 +33,6 @@ func NewReader(r io.Reader) (*Reader, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not decode format chunk")
 	}
-	fmt.Printf("%#v\n", format)
 	return &Reader{rr, format}, nil
 }
 

@@ -1,7 +1,6 @@
 package wave_test
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/bake/wave"
@@ -9,6 +8,7 @@ import (
 )
 
 func TestWriter(t *testing.T) {
+	// TODO: Compare written data.
 	samples := []int{
 		0, 0,
 		5924, -3298, 4924, 5180, -1770, -1768,
@@ -28,7 +28,4 @@ func TestWriter(t *testing.T) {
 	if err := wavw.Close(); err != nil {
 		t.Fatalf("could not close wave writer: %v", err)
 	}
-
-	b, _ := ioutil.ReadAll(ws.Reader())
-	t.Errorf("% x\n", b)
 }

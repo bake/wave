@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/bake/wave/riff"
@@ -32,10 +31,7 @@ func TestWriter(t *testing.T) {
 		0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x00,
 	}
 
-	ws, err := os.Create("test.wav")
-	if err != nil {
-		log.Fatal(err)
-	}
+	ws := &writerseeker.WriterSeeker{}
 	rw, err := riff.NewWriter(ws, "WAVE")
 	if err != nil {
 		t.Fatalf("could not create new riff writer: %v", err)
@@ -60,14 +56,10 @@ func TestWriter(t *testing.T) {
 		t.Fatalf("could not close test file: %v", err)
 	}
 
-	ws, err = os.Open("test.wav")
-	if err != nil {
-		t.Fatalf("could not open test file: %v", err)
-	}
 	defer ws.Close()
-	b, _ := ioutil.ReadAll(ws)
-	if fmt.Sprintf("% x", b) != fmt.Sprintf("% x", out) {
-		t.Fatalf("expected body to be\n% x, got\n% x\n", out, b)
+	body, _ := ioutil.ReadAll(ws.Reader())
+	if fmt.Sprintf("% x", body) != fmt.Sprintf("% x", out) {
+		t.Fatalf("expected body to be\n% x, got\n% x\n", out, body)
 	}
 }
 

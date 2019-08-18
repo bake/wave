@@ -9,12 +9,13 @@ import (
 
 // Writer writes samples to an io.Writer.
 type Writer struct {
-	w   io.Writer
+	rw  *riff.Writer
+	cw  *riff.Writer
 	fmt Format
 }
 
 // NewWriter creates a new WAVE Writer.
-func NewWriter(ws io.WriteSeeker, fmt Format) (*Writer, error) {
+func NewWriter(ws io.WriteSeeker, format Format) (*Writer, error) {
 	rw, err := riff.NewWriter(ws, "WAVE")
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create new riff reader")
@@ -23,7 +24,7 @@ func NewWriter(ws io.WriteSeeker, fmt Format) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create format chunk")
 	}
-	if err := fmt.encode(cw); err != nil {
+	if err := format.encode(cw); err != nil {
 		return nil, errors.Wrap(err, "could not encode format chunk")
 	}
 	if err := cw.Close(); err != nil {
@@ -33,7 +34,7 @@ func NewWriter(ws io.WriteSeeker, fmt Format) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create data chunk")
 	}
-	return &Writer{cw, fmt}, nil
+	return &Writer{rw, cw, format}, nil
 }
 
 // Sample writes a sample.
@@ -49,7 +50,7 @@ func (wavw *Writer) Sample(s int) error {
 	case 32:
 		p = []byte{byte(s), byte(s >> 8), byte(s >> 16), byte(s >> 24)}
 	}
-	if _, err := wavw.w.Write(p); err != nil {
+	if _, err := wavw.cw.Write(p); err != nil {
 		return errors.Wrap(err, "could not write sample")
 	}
 	return nil
@@ -63,4 +64,13 @@ func (wavw *Writer) Samples(samples []int) error {
 		}
 	}
 	return nil
+}
+
+// Close the underlying RIFF writer. The file writer needs to be closed
+// separately.
+func (wavw *Writer) Close() error {
+	if err := wavw.cw.Close(); err != nil {
+		return err
+	}
+	return wavw.rw.Close()
 }

@@ -20,13 +20,13 @@ type Reader struct {
 	}
 }
 
-// NewReader reads the initial RIFF header and returns its type and a chunk
-// reader.
+// NewReader reads the initial RIFF header and returns a chunk reader and its
+// type.
 func NewReader(r io.Reader) (rr *Reader, riffType string, err error) {
 	rr = &Reader{r: r}
 	if !rr.Next() {
 		if rr.Error() == nil {
-			return nil, "", errors.Wrap(io.EOF, "wat")
+			return nil, "", errors.Wrap(io.EOF, "unecpected EOF")
 		}
 		return nil, "", errors.Wrap(rr.Error(), "could not read RIFF chunk")
 	}

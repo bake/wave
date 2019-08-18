@@ -10,7 +10,6 @@ import (
 )
 
 func TestWriter(t *testing.T) {
-	// TODO: Compare written data.
 	format := wave.Format{
 		AudioFormat:   1,
 		NumChans:      2,

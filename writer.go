@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Writer writes samples to an io.Writer.
+// Writer writes samples to an io.WriteSeeker.
 type Writer struct {
 	rw  *riff.Writer
 	cw  *riff.Writer
@@ -66,7 +66,7 @@ func (wavw *Writer) Samples(samples []int) error {
 	return nil
 }
 
-// Close the underlying RIFF writer. The file writer needs to be closed
+// Close the underlying RIFF writers. The file writer needs to be closed
 // separately.
 func (wavw *Writer) Close() error {
 	if err := wavw.cw.Close(); err != nil {

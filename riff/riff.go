@@ -1,2 +1,3 @@
-// Package riff contains a reader and a writer for RIFF files.
+// Package riff contains implementations for a reader and a writer for RIFF
+// files.
 package riff

@@ -7,14 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Writer writes samples to an io.WriteCloser.
+// Writer writes samples to an io.Writer.
 type Writer struct {
-	io.WriteCloser
+	w   io.Writer
 	fmt Format
 }
 
 // NewWriter creates a new WAVE Writer.
-func NewWriter(ws io.WriteSeeker, fmt *Format) (*Writer, error) {
+func NewWriter(ws io.WriteSeeker, fmt Format) (*Writer, error) {
 	rw, err := riff.NewWriter(ws, "WAVE")
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create new riff reader")
@@ -33,7 +33,7 @@ func NewWriter(ws io.WriteSeeker, fmt *Format) (*Writer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create data chunk")
 	}
-	return &Writer{cw, *fmt}, nil
+	return &Writer{cw, fmt}, nil
 }
 
 // Sample writes a sample.
@@ -49,8 +49,18 @@ func (wavw *Writer) Sample(s int) error {
 	case 32:
 		p = []byte{byte(s), byte(s >> 8), byte(s >> 16), byte(s >> 24)}
 	}
-	if _, err := wavw.Write(p); err != nil {
+	if _, err := wavw.w.Write(p); err != nil {
 		return errors.Wrap(err, "could not write sample")
+	}
+	return nil
+}
+
+// Samples writes a slice of samples.
+func (wavw *Writer) Samples(samples []int) error {
+	for _, s := range samples {
+		if err := wavw.Sample(s); err != nil {
+			return err
+		}
 	}
 	return nil
 }

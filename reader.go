@@ -23,6 +23,9 @@ func NewReader(r io.Reader) (*Reader, error) {
 		return nil, errors.Errorf("unexpected riff type %s", t)
 	}
 	if !rr.Next() {
+		if rr.Error() == nil {
+			return nil, errors.Wrap(io.EOF, "unecpected eof before fomat chunk")
+		}
 		return nil, errors.Wrap(rr.Error(), "could not read format chunk")
 	}
 	id, _, data := rr.Chunk()
@@ -67,7 +70,7 @@ func (wavr *Reader) Samples() ([]int, error) {
 			break
 		}
 		if err != nil {
-			return nil, errors.Wrap(err, "could not read sample")
+			return nil, err
 		}
 		samples = append(samples, s)
 	}

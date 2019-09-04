@@ -50,10 +50,8 @@ func TestWriter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not create wave writer: %v", err)
 	}
-	for _, s := range samples {
-		if err := wavw.Sample(s); err != nil {
-			t.Fatalf("could not write sample %d: %v", s, err)
-		}
+	if err := wavw.Samples(samples); err != nil {
+		t.Fatalf("could not write samples: %v", err)
 	}
 	wavw.Close()
 
@@ -64,7 +62,6 @@ func TestWriter(t *testing.T) {
 }
 
 func ExampleWriter() {
-	return
 	format := wave.Format{
 		AudioFormat:   1,
 		NumChans:      2,

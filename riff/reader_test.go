@@ -97,6 +97,7 @@ func ExampleReader() {
 	if err := rr.Error(); err != nil {
 		log.Fatal(err)
 	}
+
 	// Output:
 	// type: WAVE
 	// fmt : 01 00 02 00 22 56 00 00 88 58 01 00 04 00 10 00

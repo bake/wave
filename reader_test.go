@@ -52,6 +52,65 @@ func TestReader(t *testing.T) {
 	}
 }
 
+func TestNewReader(t *testing.T) {
+	tt := []struct {
+		name string
+		res  bool
+		data []byte
+	}{
+		{
+			name: "empty reader",
+			res:  false,
+			data: []byte{},
+		},
+		{
+			name: "wrong riff id",
+			res:  false,
+			data: []byte{
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			},
+		},
+		{
+			name: "wrong riff type",
+			res:  false,
+			data: []byte{
+				// R,    I,    F,    F,                      4,    0,    0,    0,    0,
+				0x52, 0x49, 0x46, 0x46, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			},
+		},
+		{
+			name: "no format chunk",
+			res:  false,
+			data: []byte{
+				// R,    I,    F,    F,                      4,    W,    A,    V,    E,
+				0x52, 0x49, 0x46, 0x46, 0x04, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+			},
+		},
+		{
+			name: "unexpected chunk id",
+			res:  false,
+			data: []byte{
+				// R,    I,    F,    F,                     12,    W,    A,    V,    E,
+				0x52, 0x49, 0x46, 0x46, 0x0c, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+				// s,    l,    n,    t,                      4,
+				0x73, 0x6c, 0x6e, 0x74, 0x04, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff,
+			},
+		},
+	}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			r := bytes.NewReader(tc.data)
+			_, err := wave.NewReader(r)
+			if err != nil && tc.res {
+				t.Fatalf("unexpected error: %v\n", err)
+			}
+			if err == nil && !tc.res {
+				t.Fatal("expected an error")
+			}
+		})
+	}
+}
+
 func ExampleReader() {
 	r := bytes.NewReader([]byte{
 		// R,    I,    F,    F,                     76,    W,    A,    V,    E,

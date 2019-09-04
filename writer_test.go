@@ -3,6 +3,7 @@ package wave_test
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"testing"
 
 	"github.com/bake/wave"
@@ -59,5 +60,34 @@ func TestWriter(t *testing.T) {
 	body, _ := ioutil.ReadAll(ws.Reader())
 	if fmt.Sprintf("% x", body) != fmt.Sprintf("% x", out) {
 		t.Fatalf("expected body to be\n% x, got\n% x\n", out, body)
+	}
+}
+
+func ExampleWriter() {
+	return
+	format := wave.Format{
+		AudioFormat:   1,
+		NumChans:      2,
+		SampleRate:    44100,
+		ByteRate:      176400,
+		BlockAlign:    4,
+		BitsPerSample: 16,
+	}
+	samples := []int{
+		0, 0, 5924, -3298, 4924, 5180, -1770, -1768,
+		-6348, -23005, -3524, -3548, -12783, 3354,
+		0, 0, 5924, -3298, 4924, 5180, -1770, -1768,
+	}
+
+	ws := &writerseeker.WriterSeeker{}
+	wavw, err := wave.NewWriter(ws, format)
+	if err != nil {
+		log.Fatalf("could not create wave writer: %v", err)
+	}
+	defer wavw.Close()
+	for _, s := range samples {
+		if err := wavw.Sample(s); err != nil {
+			log.Fatalf("could not write sample %d: %v", s, err)
+		}
 	}
 }

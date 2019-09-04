@@ -3,6 +3,7 @@ package wave_test
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/bake/wave"
@@ -49,4 +50,41 @@ func TestReader(t *testing.T) {
 	if fmt.Sprint(samples) != fmt.Sprint(out) {
 		t.Fatalf("expected samples to be\n%v, got\n%v", out, samples)
 	}
+}
+
+func ExampleReader() {
+	r := bytes.NewReader([]byte{
+		// R,    I,    F,    F,                     76,    W,    A,    V,    E,
+		0x52, 0x49, 0x46, 0x46, 0x50, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+
+		// f,    m,    t,    ␣,                     16,          1,          2,
+		0x66, 0x6d, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
+		//               44100,                 176400,          4,         16,
+		0x44, 0xac, 0x00, 0x00, 0x10, 0xb1, 0x02, 0x00, 0x04, 0x00, 0x10, 0x00,
+
+		// d,    a,    t,    a,                     44,          0,          0,
+		0x64, 0x61, 0x74, 0x61, 0x2c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		//    5924,      -3298,       4924,       5180,      -1770,      -1768,
+		0x24, 0x17, 0x1e, 0xf3, 0x3c, 0x13, 0x3c, 0x14, 0x16, 0xf9, 0x18, 0xf9,
+		//   -6348,     -23005,      -3524,      -3548,     -12783,       3354,
+		0x34, 0xe7, 0x23, 0xa6, 0x3c, 0xf2, 0x24, 0xf2, 0x11, 0xce, 0x1a, 0x0d,
+		//       0,          0,       5924,      -3298,       4924,       5180,
+		0x00, 0x00, 0x00, 0x00, 0x24, 0x17, 0x1e, 0xf3, 0x3c, 0x13, 0x3c, 0x14,
+		//   -1770,      -1768,
+		0x16, 0xf9, 0x18, 0xf9,
+	})
+	wavr, err := wave.NewReader(r)
+	if err != nil {
+		log.Fatalf("could not create new wave reader: %v", err)
+	}
+	fmt.Printf("SampleRate: %d\n", wavr.Format.SampleRate)
+	samples, err := wavr.Samples()
+	if err != nil {
+		log.Fatalf("could not read samples: %v", err)
+	}
+	fmt.Printf("Samples: %v\n", samples[:10])
+
+	// Output:
+	// SampleRate: 44100
+	// Samples: [0 0 5924 -3298 4924 5180 -1770 -1768 -6348 -23005]
 }

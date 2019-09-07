@@ -1,6 +1,7 @@
 package riff
 
 import (
+	"bufio"
 	"encoding/binary"
 	"io"
 
@@ -15,7 +16,7 @@ const (
 
 // Writer extends an io.WriteSeeker by the ability to write in chunks.
 type Writer struct {
-	io.WriteSeeker
+	buf   *bufferedWriteSeeker
 	start int64
 	size  int64
 }
@@ -25,7 +26,7 @@ func NewWriter(ws io.WriteSeeker, riffType string) (*Writer, error) {
 	if len(riffType) != riffTypeSize {
 		return nil, errors.Errorf("riff type has to be %d bytes long", riffTypeSize)
 	}
-	w := &Writer{WriteSeeker: ws}
+	w := &Writer{buf: newBufferedWriteSeeker(ws)}
 	cw, err := w.Chunk("RIFF")
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create riff chunk")
@@ -53,9 +54,9 @@ func (w *Writer) Chunk(chunkType string) (*Writer, error) {
 	// As a countermeasure and to not keep references to parent chunks, their
 	// sizes are decremented by 4 on each creation of a new child.
 	w.size -= sizeFieldSize
-	cw := &Writer{WriteSeeker: w, start: start}
+	cw := &Writer{buf: newBufferedWriteSeeker(w), start: start}
 	header := append([]byte(chunkType), make([]byte, sizeFieldSize)...)
-	if _, err := cw.WriteSeeker.Write(header); err != nil {
+	if _, err := cw.buf.Write(header); err != nil {
 		return nil, errors.Wrap(err, "could not write chunk header")
 	}
 	return cw, nil
@@ -70,7 +71,7 @@ func (w *Writer) Close() error {
 	if _, err := w.Seek(w.start+chunkTypeSize, io.SeekStart); err != nil {
 		return errors.Wrap(err, "could not seek to beginning of chunk")
 	}
-	if _, err := w.WriteSeeker.Write(data); err != nil {
+	if _, err := w.buf.Write(data); err != nil {
 		return errors.Wrap(err, "could not write chunk size")
 	}
 	if _, err := w.Seek(size, io.SeekCurrent); err != nil {
@@ -81,13 +82,47 @@ func (w *Writer) Close() error {
 		if _, err := w.Write([]byte{0x00}); err != nil {
 			return errors.Wrap(err, "could not write padding byte")
 		}
+		if err := w.buf.Flush(); err != nil {
+			return errors.Wrap(err, "could not flush writer")
+		}
 	}
 	return nil
 }
 
 // Write to the chunk.
 func (w *Writer) Write(p []byte) (n int, err error) {
-	n, err = w.WriteSeeker.Write(p)
+	n, err = w.buf.Write(p)
 	w.size += int64(n)
 	return n, err
+}
+
+// Seek in the writer.
+func (w *Writer) Seek(offset int64, whence int) (int64, error) {
+	return w.buf.Seek(offset, whence)
+}
+
+// bufferedWriteSeeker is a buffered io.WriteSeeker that writes to a buffer
+// until Flush() or Seek() is called.
+type bufferedWriteSeeker struct {
+	ws  io.WriteSeeker
+	buf *bufio.Writer
+}
+
+func newBufferedWriteSeeker(ws io.WriteSeeker) *bufferedWriteSeeker {
+	return &bufferedWriteSeeker{ws: ws, buf: bufio.NewWriter(ws)}
+}
+
+func (w *bufferedWriteSeeker) Flush() error {
+	return w.buf.Flush()
+}
+
+func (w *bufferedWriteSeeker) Write(p []byte) (int, error) {
+	return w.buf.Write(p)
+}
+
+func (w *bufferedWriteSeeker) Seek(offset int64, whence int) (int64, error) {
+	if err := w.Flush(); err != nil {
+		return 0, err
+	}
+	return w.ws.Seek(offset, whence)
 }

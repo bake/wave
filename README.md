@@ -47,3 +47,53 @@ if err != nil {
   log.Fatalf("could not read samples: %v", err)
 }
 ```
+
+## Writer example
+
+Create a new WAVE writer by wrapping it around an `io.WriteSeeker`. This one is
+automatically buffered.
+
+```go
+format := wave.Format{
+  AudioFormat:   1,
+  NumChans:      2,
+  SampleRate:    44100,
+  ByteRate:      176400,
+  BlockAlign:    4,
+  BitsPerSample: 16,
+}
+samples := []int{
+  0, 0, 5924, -3298, 4924, 5180, -1770, -1768,
+  -6348, -23005, -3524, -3548, -12783, 3354,
+  0, 0, 5924, -3298, 4924, 5180, -1770, -1768,
+}
+w, err := os.Create("audio.wav")
+if err != nil {
+  log.Fatalf("could not create file: %v", err)
+}
+defer w.Close()
+wavw, err := wave.NewWriter(w, format)
+if err != nil {
+  log.Fatalf("could not create wave writer: %v", err)
+}
+defer wavw.Close()
+```
+
+Write the samples one by one or as a slice of integers.
+
+```go
+for _, s := range samples {
+  if err := wavw.Sample(s); err != nil {
+    log.Fatalf("could not write sample %d: %v", s, err)
+  }
+}
+```
+
+```go
+if err := wavw.Samples(samples); err != nil {
+  log.Fatalf("could not write samples: %v", err)
+}
+```
+
+Before creating a new chunk, the current one has to be closed which
+automatically writes its size.
